@@ -3,7 +3,13 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
-
+	<PropertyGroup>
+		<PackageId>Shoshin.HtmlUtils</PackageId>
+		<Version>0.1.0</Version>
+		<Authors>Nick Miller</Authors>
+		<Description>Misc. utils to work with Html, in F#, using RoP</Description>
+		<RepositoryUrl>https://github.com/nicholasamiller/htmlutils</RepositoryUrl>
+	</PropertyGroup>
  
 		
   <ItemGroup>
