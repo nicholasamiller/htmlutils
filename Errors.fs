@@ -28,5 +28,7 @@ module Errors =
         | Exception of System.Exception
         | FailedToCheckIfContainerExists of string
         | AzureResponseHasNoValue
+        | AzureResponseBadStatusCode of Azure.Response
+        | Unknown
 
  
