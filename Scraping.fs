@@ -5,6 +5,14 @@ open System
 open System.Net
 open Errors
 open System.IO
+open System
+open System.IO
+open System.Net.Http
+open System.Threading.Tasks
+open System.Threading
+open FSharp.Data
+open Azure.Data.Tables
+open Azure.Storage.Blobs
 
 module Scraping =
     
@@ -36,7 +44,10 @@ module Scraping =
             Ok text
          with
          | ex -> Error(ScrapeError.Exception(ex))
-    
+   
+
+
+   
     
 
 

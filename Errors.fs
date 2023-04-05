@@ -24,4 +24,9 @@ module Errors =
        | MissingAttribute of MissingAttribute
        | CompositeScrapeError of ScrapeError list
 
+    type StorageError =
+        | Exception of System.Exception
+        | FailedToCheckIfContainerExists of string
+        | AzureResponseHasNoValue
+
  

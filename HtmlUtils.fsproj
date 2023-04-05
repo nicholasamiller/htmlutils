@@ -14,11 +14,14 @@
 		
   <ItemGroup>
     <Compile Include="Errors.fs" />
+    <Compile Include="Storage.fs" />
     <Compile Include="HtmlParsing.fs" />
     <Compile Include="Scraping.fs" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Data.Tables" Version="12.8.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.15.1" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
