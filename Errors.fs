@@ -13,5 +13,15 @@ module Errors =
        | MissingAttribute of MissingAttribute
        | Exception of System.Exception
        | Message of string
+    
+    type ScrapeError =
+       | HtmlParseError of HtmlParseError
+       | NotFound of string
+       | UnexpectedHttpStatusCode of HttpStatusCode
+       | Exception of System.Exception
+       | Message of string
+       | XPath of XPathFoundNoNodes
+       | MissingAttribute of MissingAttribute
+       | CompositeScrapeError of ScrapeError list
 
  

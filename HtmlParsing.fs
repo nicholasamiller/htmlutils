@@ -5,8 +5,6 @@ open System.Net
 open Errors
 
 module HtmlParsing =
-    
-   
  
     let getHtmlDoc (html: string) : Result<HtmlDocument,HtmlParseError> = 
            try 
@@ -16,7 +14,6 @@ module HtmlParsing =
            with
                | ex -> Error(HtmlParseError.Exception(ex))
     
-  
 
     let getSingleDocumentNode (htmlDoc : HtmlDocument) (xPath: string) : Result<HtmlNode,HtmlParseError> =
         match htmlDoc.DocumentNode.SelectSingleNode(xPath) with
@@ -33,7 +30,6 @@ module HtmlParsing =
         | false -> Error(HtmlParseError.MissingAttribute({Node = node; Attribute = attributeName}))
         | true -> Ok node.Attributes.[attributeName].Value
     
-        
 
     let getAttributeValue (nodeXPath : string) (attributeName: string) (html: string) =
         getHtmlDoc html
