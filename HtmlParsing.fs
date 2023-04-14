@@ -3,6 +3,7 @@ open HtmlAgilityPack
 open System.Linq
 open System.Net
 open Errors
+open System
 
 module HtmlParsing =
  
@@ -24,6 +25,11 @@ module HtmlParsing =
         match htmlDoc.DocumentNode.SelectNodes(xPath) with
         | null -> Error(HtmlParseError.XPath({Html = htmlDoc.ParsedText; XPath = xPath}))
         | nodes -> Ok(nodes)
+    
+    let getMultipleDocumentNodesOrEmpty (htmlDoc : HtmlDocument) (xPath : string) : seq<HtmlNode> =
+        match htmlDoc.DocumentNode.SelectNodes(xPath) with
+        | null -> Seq.empty
+        | nodes -> nodes
 
     let getAttributeValueFromNode (node : HtmlNode) (attributeName : string) =
         match node.Attributes.Contains(attributeName) with
@@ -58,9 +64,6 @@ module HtmlParsing =
             | Ok(t) -> Ok({Target = t; Text = n.InnerText })
             | Error e ->  Error(HtmlParseError.MissingAttribute({Attribute = "href"; Node = n }))
         )
-     
-
-
         
     let getAttributeValueFromHtmlDoc (nodeXPath : string) (attributeName: string) (htmlDoc: HtmlDocument) =
         getSingleDocumentNode htmlDoc nodeXPath |> Result.bind (fun n -> getAttributeValueFromNode n attributeName)
@@ -99,5 +102,28 @@ module HtmlParsing =
         getSingleDocumentNode htmlDoc $"//table[@id='{tableId}']" |> Result.bind (fun n -> getDataFromHtmlTable n)
 
         
+    let getAllLinkTargetStringsFromPage (htmlDoc : HtmlDocument) (whiteSupremacyFilter : string -> bool) =
+        let xPath = "//a"
+        let anchorNodes = getMultipleDocumentNodesOrEmpty htmlDoc xPath
+        let anchorNodesFiltered = anchorNodes |> Seq.filter (fun n -> whiteSupremacyFilter n.InnerText)
+        let targetResults = anchorNodesFiltered |> Seq.map (fun n -> getAttributeValueFromNode n "href")
+        let targets = targetResults |> Seq.choose (fun r -> match r with | Ok(t) -> Some t | Error _ -> None)
+        targets
+
+    let getAbsoluteUrl (baseUrl : string) (url : string) =
+        try
+            let isAboluteAlready = url.StartsWith("http")
+            match isAboluteAlready with
+            | true -> Ok(url)
+            | false ->
+                let baseUri = new Uri(baseUrl)
+                let relativeUri = new Uri(url, UriKind.Relative)
+                let absoluteUri = new Uri(baseUri, relativeUri)
+                Ok(absoluteUri.AbsoluteUri)
+        with 
+        | ex ->  Error(ScrapeError.Exception(ex))
+    
 
 
+
+  

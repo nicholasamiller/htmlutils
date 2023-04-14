@@ -13,6 +13,7 @@
  
 		
   <ItemGroup>
+    <Compile Include="Chunking.fs" />
     <Compile Include="Errors.fs" />
     <Compile Include="Storage.fs" />
     <Compile Include="HtmlParsing.fs" />

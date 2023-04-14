@@ -44,6 +44,10 @@ module Scraping =
             Ok text
          with
          | ex -> Error(ScrapeError.Exception(ex))
+    
+
+
+    
    
 
 

@@ -4,7 +4,7 @@ open Azure.Data.Tables
 open Azure.Storage.Blobs
 open Errors
 
-module Storage =
+module AzureStorage =
     
     let getAzureResultAsync<'T> (azureStorageSdkCall : unit -> System.Threading.Tasks.Task<Azure.Response<'T>>)  = async {
         try
@@ -36,11 +36,10 @@ module Storage =
         let azureStorageSdkCall = fun () -> blobClient.UploadAsync(bd,overwrite = true)
         return! getAzureResultAsync azureStorageSdkCall    
     }
-        
+                
     let createTableServiceClient (connectionString : string) = 
         let tableServiceClient = new TableServiceClient(connectionString)
         tableServiceClient
-
 
 
     let createTableIfNotExistsAsync(tableName : string) (tableServiceClient : TableServiceClient) = async {
@@ -49,7 +48,8 @@ module Storage =
         return! getAzureResultAsync azureStorageSdkCall
     }
 
-     
+
+
     
         
 
