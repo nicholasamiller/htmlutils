@@ -111,6 +111,25 @@ type TestClass () =
         printfn "%s" (prettyPrintChunks result)
         
         Assert.IsNotNull(result)
+
+
+    [<TestMethod>]
+    member this.TestBreadcrumbsExtraction() = 
+        let htmlDoc = new HtmlDocument()
+        htmlDoc.LoadHtml(testHtmlToChunk) |> ignore
+        let breadCrumbs = Shoshin.HtmlUtils.MetadataExtraction.extractLiBreadcrumbs htmlDoc "//ol[@class='breadcrumb']" 
+        
+        let expected =
+            [ "Home"
+              "Get Support"
+              "Financial support"
+              "Compensation claims"
+              "Claims if you were injured after 30 June 2004"
+              "Benefits if you were permanently injured" ] 
+
+        Assert.AreEqual(expected, breadCrumbs.Value.RootToLeaf)
+        
+        
         
         
 
