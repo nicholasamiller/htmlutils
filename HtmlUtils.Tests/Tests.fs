@@ -12,7 +12,8 @@ type TestClass () =
     
     let idOfDocX = "ctl00_MainContent_AttachmentsRepeater_ctl00_ArtifactVersionRenderer_Repeater1_ctl00_ArtifactFormatTableRenderer1_RadGridNonHtml_ctl00_ctl04_hlPrimaryDoc"
     let testHtml = System.IO.File.ReadAllText("TestData/testHtml1.html")
-
+    let testHtmlToChunk = System.IO.File.ReadAllText("TestData/testHtmlToChunk.html")
+    
     let passed result =
        match result with 
        | Ok res -> true
@@ -67,7 +68,7 @@ type TestClass () =
         let bodyNode = htmlDoc.DocumentNode.SelectSingleNode("//body")
         let whiteFilter = fun (node: HtmlNode) -> node.Name = "p" || node.Name.StartsWith("h")
         let items = bodyNode.Descendants() |> Seq.toList |> List.filter(whiteFilter)
-        let result = Shoshin.HtmlUtils.Chunking.chunkHtmlByHeadings items
+        let result = Shoshin.HtmlUtils.Chunking.chunkHtmlByHeadingsH1andH2 items
         let getInnerText (nodeList : HtmlNode list) = nodeList |> List.map(fun n -> n.InnerText) |> String.concat ""
         let result = result |> List.map(getInnerText) |> String.concat ""
         let expected = "h1p1p2h2-1p3p4h2-2p5"
@@ -96,9 +97,21 @@ type TestClass () =
         let passed = result = expected
         Assert.IsTrue(passed)
 
-
+    [<TestMethod>]
+    member this.TestChunkingOnRealData() = 
+        // first select the main body of text from the webpage, excluding nav bars, side bars etc
+        // it is the div with id 'main-wrapper'
+        let htmlDoc = new HtmlDocument()
+        htmlDoc.LoadHtml(testHtmlToChunk) |> ignore
+        let xPath = "//main//*[self::h1 or self::h2 or self::h3[not(parent::div[@class='toc toc-tree'])] or self::h4 or self::h5 or self::h6 or self::p or self::ul or self::ol[not(parent::div[@class='toc toc-tree'])]  ]";
+        let contentNodes = htmlDoc.DocumentNode.SelectNodes(xPath) |> Seq.toList
+        let result = Shoshin.HtmlUtils.Chunking.chunkHtmlByHeadingsH1andH2 contentNodes 
+        let prettyPrintChunks (chunks: HtmlNode list list) =
+            chunks |> List.map(fun chunk -> chunk |> List.map(fun node -> Chunking.formatElementAsPlainText node) |> String.concat System.Environment.NewLine) |> String.concat $"{System.Environment.NewLine}{System.Environment.NewLine}"
+        printfn "%s" (prettyPrintChunks result)
         
-
-
+        Assert.IsNotNull(result)
+        
+        
 
 

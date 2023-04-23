@@ -38,29 +38,6 @@ module Chunking =
         HeadingLevel: HeadingLevel;
     }
 
-    // a generic function to take a list of things and split them into a list of chunks, with the start of each 
-    //let chunk (items: 'a list) (isChunkStart : 'a -> bool) : 'a list list =
-    //    let rec chunkItems (remainingItems: 'a list) (chunksAccumulator: 'a list list) : 'a list list =
-    //        match remainingItems with 
-    //        [] -> chunksAccumulator 
-    //        | head :: tail when isChunkStart head ->
-    //            // start new chunk
-    //            let newChunk = [head]
-    //            let newChunksAccumulator = newChunk :: chunksAccumulator
-    //            // reverse previous chunk
-    //            chunkItems tail newChunksAccumulator
-    //        | head :: tail ->
-    //            // add to current chunk
-    //            let currentChunk = List.head chunksAccumulator
-    //            let currentChunkWithItemPrepended = head :: currentChunk
-    //            let newChunksAccumulator = currentChunkWithItemPrepended :: List.tail chunksAccumulator
-    //            chunkItems tail newChunksAccumulator
-    //    let chunkedItems = chunkItems items []
-    //    // all lists are reversed
-    //    let reversedChunkedItems = chunkedItems |> List.map List.rev
-    //    reversedChunkedItems |> List.rev
-            
-                    
     let chunk (items: 'a list) (isChunkStart: 'a -> bool) : 'a list list =
         let folder (chunksAccumulator: 'a list list, currentChunk: 'a list) (item: 'a) =
             if isChunkStart item then
@@ -78,11 +55,12 @@ module Chunking =
     // then we will convert the chunks to a tree
 
 
-    let chunkHtmlByHeadings (items : HtmlNode list) =
+    let chunkHtmlByHeadingsH1andH2 (items : HtmlNode list) =
         let isChunkStart (item : HtmlNode) =
             match getHeadingLevelFromElementName item.Name with
-            | Some _ -> true
-            | None -> false
+            | Some(H1)  -> true
+            | Some(H2)  -> true
+            | _ -> false
         chunk items isChunkStart
     
     let extractText (node: HtmlNode) =
@@ -136,7 +114,12 @@ module Chunking =
                 | _ -> ()
         build listNode 1 |> ignore
         sb.ToString()
-
+    
+    let formatElementAsPlainText (node: HtmlNode) : string = 
+        match node.Name.ToLower() with
+        | "table" -> formatTableAsPlainText node
+        | "ol" | "ul" -> formatListAsPlainText node
+        | _ -> node.InnerText
                 
 
             
