@@ -12,7 +12,7 @@ type TestClass () =
     
     let idOfDocX = "ctl00_MainContent_AttachmentsRepeater_ctl00_ArtifactVersionRenderer_Repeater1_ctl00_ArtifactFormatTableRenderer1_RadGridNonHtml_ctl00_ctl04_hlPrimaryDoc"
     let testHtml = System.IO.File.ReadAllText("TestData/testHtml1.html")
-    let testHtmlToChunk = System.IO.File.ReadAllText("TestData/testHtmlToChunk.html")
+    let testHtml2 = System.IO.File.ReadAllText("TestData/testHtmlToChunk.html")
     
     let passed result =
        match result with 
@@ -75,34 +75,57 @@ type TestClass () =
         let passed = result = expected
         Assert.IsTrue(passed)
             
+
     [<TestMethod>]
-    member this.TestUlListFormatter() =
+    member this.TestFormatLiNode() =
         let testHtml = """
-        <ol>
-        <li>1</li>
-        <li>2</li>
-        <li>3
-            <ul>
-                <li>3.1</li>
-                <li>3.2</li>
-            </ul>
-        </li>
-        <li>4</li>
-        </ol>
+        <li>Foo</li>
         """
-        
         let testNode = HtmlNode.CreateNode(testHtml);
-        let result = Shoshin.HtmlUtils.Chunking.formatListAsPlainText testNode
-        let expected = ""
+        let result = Shoshin.HtmlUtils.Chunking.formatLiNode testNode
+        let expected = "Foo"
         let passed = result = expected
         Assert.IsTrue(passed)
+
+    [<TestMethod>]
+    member this.TestFormatLiNodeWithParasHeadAndTail() =
+        let testHtml = """
+        <li>Foobar<p>Foo</p>
+        <p>Bar</p>Foobar</li>
+
+        """
+        let testNode = HtmlNode.CreateNode(testHtml);
+        let result = Shoshin.HtmlUtils.Chunking.formatLiNode testNode
+        let expected = "Foobar\r\nFoo\r\n\r\nBar\r\nFoobar"
+        let passed = result = expected
+        Assert.IsTrue(passed)
+    
+    [<TestMethod>]
+    member this.FormatListNode() =
+        let htmlList = """<ol>
+                <li>Item 1</li>
+                <li>Item 2
+                  <ul>
+                    <li>Sub-item 1</li>
+                    <li>Sub-item 2</li>
+                  </ul>
+                </li>
+                <li>Item 3</li>
+              </ol>"""
+        let testNode = HtmlNode.CreateNode(htmlList);
+        let result = Shoshin.HtmlUtils.Chunking.formatListNode testNode 1
+        let expected = "\t1. Item 1\r\n\t2. Item 2\r\n\t3. Item 3"
+        let passed = result = expected
+        Assert.IsTrue(passed)
+    
+
 
     [<TestMethod>]
     member this.TestChunkingOnRealData() = 
         // first select the main body of text from the webpage, excluding nav bars, side bars etc
         // it is the div with id 'main-wrapper'
         let htmlDoc = new HtmlDocument()
-        htmlDoc.LoadHtml(testHtmlToChunk) |> ignore
+        htmlDoc.LoadHtml(testHtml2) |> ignore
         let xPath = "//main//*[self::h1 or self::h2 or self::h3[not(parent::div[@class='toc toc-tree'])] or self::h4 or self::h5 or self::h6 or self::p or self::ul or self::ol[not(parent::div[@class='toc toc-tree'])]  ]";
         let contentNodes = htmlDoc.DocumentNode.SelectNodes(xPath) |> Seq.toList
         let result = Shoshin.HtmlUtils.Chunking.chunkHtmlByHeadingsH1andH2 contentNodes 
@@ -116,8 +139,8 @@ type TestClass () =
     [<TestMethod>]
     member this.TestBreadcrumbsExtraction() = 
         let htmlDoc = new HtmlDocument()
-        htmlDoc.LoadHtml(testHtmlToChunk) |> ignore
-        let breadCrumbs = Shoshin.HtmlUtils.MetadataExtraction.extractLiBreadcrumbs htmlDoc "//ol[@class='breadcrumb']" 
+        htmlDoc.LoadHtml(testHtml2) |> ignore
+        let breadCrumbs = Shoshin.HtmlUtils.DrupalMetadataExtraction.extractLiBreadcrumbs htmlDoc "//ol[@class='breadcrumb']" 
         
         let expected =
             [ "Home"
@@ -127,7 +150,21 @@ type TestClass () =
               "Claims if you were injured after 30 June 2004"
               "Benefits if you were permanently injured" ] 
 
-        Assert.AreEqual(expected, breadCrumbs.Value.RootToLeaf)
+        Assert.AreEqual(expected, breadCrumbs)
+
+    [<TestMethod>]
+    member this.TestWholePageScrape() =
+        let rawText = testHtml2
+        let result = Shoshin.HtmlUtils.Scraping.scrapeDrupalContent rawText
+        
+        match result with
+        | Ok scrapedContent -> 
+            printfn "%s" (scrapedContent.ToString())
+            Assert.IsTrue(true)
+        | Error e -> Assert.Fail()
+
+
+        
         
         
         

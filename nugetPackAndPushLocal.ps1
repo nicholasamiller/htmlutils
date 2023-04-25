@@ -1,0 +1,1 @@
+dotnet nuget push ((gci '.\bin\Debug\*.nupkg') | select -First 1).FullName --source $localNugetRepoPath

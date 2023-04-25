@@ -16,7 +16,6 @@ module Errors =
     
     type ScrapeError =
        | HtmlParseError of HtmlParseError
-       | NotFound of string
        | UnexpectedHttpStatusCode of HttpStatusCode
        | Exception of System.Exception
        | Message of string

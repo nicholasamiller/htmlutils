@@ -13,6 +13,7 @@ open System.Threading
 open FSharp.Data
 open Azure.Data.Tables
 open Azure.Storage.Blobs
+open DrupalMetadataExtraction
 
 module Scraping =
     
@@ -44,15 +45,22 @@ module Scraping =
             Ok text
          with
          | ex -> Error(ScrapeError.Exception(ex))
-    
-
-
-    
    
-
-
    
+    let scrapeDrupalContent(rawHtml : string) : Result<Domain.DrupalContentDocument,ScrapeError> =
+        let htmlDocResult = HtmlParsing.getHtmlDoc rawHtml
+        // get chunks
+        let getChunksResult (htmlDoc : HtmlAgilityPack.HtmlDocument) = 
+            let contentSelector = "//main//*[self::h1 or self::h2 or self::h3[not(parent::div[@class='toc toc-tree'])] or self::h4 or self::h5 or self::h6 or self::p or self::ul or self::ol[not(parent::div[@class='toc toc-tree'])]  ]";
+            let contentNodesResult =  HtmlParsing.getMultipleDocumentNodes htmlDoc contentSelector |> Result.map List.ofSeq
+            let elementLists = contentNodesResult |> Result.map (fun nodeList -> Chunking.chunkHtmlByHeadingsH1andH2 nodeList)
+            let chunks = elementLists |> Result.map (fun elementList -> elementList |> List.map (fun l -> Chunking.parseNodeListToChunk l))
+            chunks
+        let chunks = htmlDocResult |> Result.bind getChunksResult
+        let metadata = htmlDocResult |> Result.map (fun d -> DrupalMetadataExtraction.extractDrupalMetadata d)
+        match (chunks,metadata) with
+        | (Ok chunks,Ok metadata) -> Ok {Chunks = chunks; Metadata = metadata}
+        | (Ok _,Error e) -> Error(ScrapeError.HtmlParseError(e))
+        | (Error e,Ok _) -> Error(ScrapeError.HtmlParseError(e))
+        | (Error e1,Error e2) -> Error(ScrapeError.CompositeScrapeError([ScrapeError.HtmlParseError(e1);ScrapeError.HtmlParseError(e2)]))
     
-
-
-

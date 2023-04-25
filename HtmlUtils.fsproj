@@ -13,9 +13,10 @@
  
 		
   <ItemGroup>
+    <Compile Include="Domain.fs" />
+    <Compile Include="Errors.fs" />
     <Compile Include="MetadataExtraction.fs" />
     <Compile Include="Chunking.fs" />
-    <Compile Include="Errors.fs" />
     <Compile Include="Storage.fs" />
     <Compile Include="HtmlParsing.fs" />
     <Compile Include="Scraping.fs" />
