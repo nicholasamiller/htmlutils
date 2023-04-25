@@ -50,17 +50,27 @@ module Chunking =
         | "ol" | "ul" -> true
         | _ -> false
 
-    let formatLiNode(liNode: HtmlNode) =
+    let formatLiNode(liNode: HtmlNode) (level : int) (listMarker : string) =
+        let listMarkerPadding = String.replicate level "\t" 
+        let contentPadding = listMarkerPadding + "\t"
         // get the text head element and the text tail
-        let children = liNode.ChildNodes
-        let headText = children |> Seq.takeWhile (fun node -> not (isListNode node)) |> Seq.map (fun n -> n.InnerText.Trim()) |> String.concat $"{System.Environment.NewLine}"
-        headText
+        let children = liNode.ChildNodes |> List.ofSeq
+        let headText = children |> List.takeWhile (fun node -> not (isListNode node)) |> List.map (fun n -> $"{contentPadding}{n.InnerText.Trim()}") |> String.concat $"{System.Environment.NewLine}"
+        
+        let paddedTextWithListMarkerHangingIndentForTheWin = $"{listMarkerPadding}{listMarker}\t{headText.TrimStart('\t')}"
+        paddedTextWithListMarkerHangingIndentForTheWin
 
     let formatListNode (listNode: HtmlNode) (level: int) =
-        let padding = String.replicate level "\t"
         // ul or ol cannot have text directly inside them, so we need to get the li nodes
+        
         let liNodes = listNode.ChildNodes |> List.ofSeq |>  List.filter (fun node -> node.Name.ToLower() = "li") 
-        let liText = liNodes |> List.map formatLiNode |> List.mapi  (fun idx text  -> $"{padding}{(idx+1).ToString()}. {text}") 
+        let listMarkerProvider idx = 
+            match listNode.Name.ToLower() with
+            | "ol" -> $"{(idx+1).ToString()}."
+            | "ul" -> "-"
+            | _ -> failwith "not a list node"
+
+        let liText = liNodes |> List.mapi (fun idx li -> formatLiNode li level (listMarkerProvider idx))
         let text = liText |> String.concat $"{System.Environment.NewLine}"
         text
     
@@ -68,8 +78,7 @@ module Chunking =
     let formatElementAsPlainText (node: HtmlNode) : string = 
         match node.Name.ToLower() with
         | "table" -> formatTableAsPlainText node
-        | "li" -> formatLiNode node
-        | "ol" | "ul" -> failwith "not implemented"
+        | "ol" | "ul" -> formatListNode node 0
         | "p" -> node.InnerText + System.Environment.NewLine
         | _ -> node.InnerText         
  

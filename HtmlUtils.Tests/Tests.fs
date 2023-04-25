@@ -82,8 +82,8 @@ type TestClass () =
         <li>Foo</li>
         """
         let testNode = HtmlNode.CreateNode(testHtml);
-        let result = Shoshin.HtmlUtils.Chunking.formatLiNode testNode
-        let expected = "Foo"
+        let result = Shoshin.HtmlUtils.Chunking.formatLiNode testNode 0 "-"
+        let expected = "- Foo"
         let passed = result = expected
         Assert.IsTrue(passed)
 
@@ -95,13 +95,28 @@ type TestClass () =
 
         """
         let testNode = HtmlNode.CreateNode(testHtml);
-        let result = Shoshin.HtmlUtils.Chunking.formatLiNode testNode
-        let expected = "Foobar\r\nFoo\r\n\r\nBar\r\nFoobar"
+        let result = Shoshin.HtmlUtils.Chunking.formatLiNode testNode 1 "-"
+        printfn "%s" result
+        let expected = "\t-\tFoobar\r\n\t\tFoo\r\n\t\t\r\n\t\tBar\r\n\t\tFoobar"
         let passed = result = expected
         Assert.IsTrue(passed)
     
     [<TestMethod>]
     member this.FormatListNode() =
+        let htmlList = """<ol>
+                <li>Item 1</li>
+                <li>Item 2
+                <li>Item 3</li>
+              </ol>"""
+        let testNode = HtmlNode.CreateNode(htmlList);
+        let result = Shoshin.HtmlUtils.Chunking.formatListNode testNode 0
+        printfn "%s" result
+        let expected = "1.\tItem 1\r\n2.\tItem 2\r\n3.\tItem 3"
+        let passed = result = expected
+        Assert.IsTrue(passed)
+    
+    [<TestMethod>]
+    member this.FormatListNodeNested() =
         let htmlList = """<ol>
                 <li>Item 1</li>
                 <li>Item 2
