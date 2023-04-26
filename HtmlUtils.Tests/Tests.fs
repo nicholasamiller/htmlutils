@@ -83,7 +83,8 @@ type TestClass () =
         """
         let testNode = HtmlNode.CreateNode(testHtml);
         let result = Shoshin.HtmlUtils.Chunking.formatLiNode testNode 0 "-"
-        let expected = "- Foo"
+        printfn "%s" result
+        let expected = "-\tFoo"
         let passed = result = expected
         Assert.IsTrue(passed)
 
@@ -105,30 +106,34 @@ type TestClass () =
     member this.FormatListNode() =
         let htmlList = """<ol>
                 <li>Item 1</li>
-                <li>Item 2
+                <li>Item 2</li>
                 <li>Item 3</li>
               </ol>"""
         let testNode = HtmlNode.CreateNode(htmlList);
-        let result = Shoshin.HtmlUtils.Chunking.formatListNode testNode 0
+        let result = Shoshin.HtmlUtils.Chunking.formatList testNode
         printfn "%s" result
-        let expected = "1.\tItem 1\r\n2.\tItem 2\r\n3.\tItem 3"
+        let expected = "\t1.\tItem 1\r\n\t2.\tItem 2\r\n\t3.\tItem 3"
         let passed = result = expected
         Assert.IsTrue(passed)
     
     [<TestMethod>]
     member this.FormatListNodeNested() =
         let htmlList = """<ol>
-                <li>Item 1</li>
+                <li>Item 1
+                Multiline</li>
                 <li>Item 2
                   <ul>
-                    <li>Sub-item 1</li>
-                    <li>Sub-item 2</li>
+                    <li><p>Sub-item 1</p>
+                    <p>Multiline P</p></li>
+                    <li>Sub-item 2
+                    Multiline #text</li>
                   </ul>
                 </li>
                 <li>Item 3</li>
               </ol>"""
         let testNode = HtmlNode.CreateNode(htmlList);
-        let result = Shoshin.HtmlUtils.Chunking.formatListNode testNode 1
+        let result = Shoshin.HtmlUtils.Chunking.formatList testNode 
+        printfn "%s" result
         let expected = "\t1. Item 1\r\n\t2. Item 2\r\n\t3. Item 3"
         let passed = result = expected
         Assert.IsTrue(passed)
@@ -171,10 +176,11 @@ type TestClass () =
     member this.TestWholePageScrape() =
         let rawText = testHtml2
         let result = Shoshin.HtmlUtils.Scraping.scrapeDrupalContent rawText
-        
+         
         match result with
         | Ok scrapedContent -> 
-            printfn "%s" (scrapedContent.ToString())
+            let json = Newtonsoft.Json.JsonConvert.SerializeObject(scrapedContent)
+            printfn "%s" json
             Assert.IsTrue(true)
         | Error e -> Assert.Fail()
 

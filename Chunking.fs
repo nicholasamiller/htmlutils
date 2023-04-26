@@ -57,30 +57,48 @@ module Chunking =
         let children = liNode.ChildNodes |> List.ofSeq
         let headText = children |> List.takeWhile (fun node -> not (isListNode node)) |> List.map (fun n -> $"{contentPadding}{n.InnerText.Trim()}") |> String.concat $"{System.Environment.NewLine}"
         
-        let paddedTextWithListMarkerHangingIndentForTheWin = $"{listMarkerPadding}{listMarker}\t{headText.TrimStart('\t')}"
-        paddedTextWithListMarkerHangingIndentForTheWin
+        let forTheWin = $"{listMarkerPadding}{listMarker}\t{headText.TrimStart('\t')}"
+        forTheWin
 
-    let formatListNode (listNode: HtmlNode) (level: int) =
-        // ul or ol cannot have text directly inside them, so we need to get the li nodes
+
+    let formatList (node: HtmlNode) =
         
-        let liNodes = listNode.ChildNodes |> List.ofSeq |>  List.filter (fun node -> node.Name.ToLower() = "li") 
-        let listMarkerProvider idx = 
-            match listNode.Name.ToLower() with
-            | "ol" -> $"{(idx+1).ToString()}."
-            | "ul" -> "-"
-            | _ -> failwith "not a list node"
+        let getLmProvider (node : HtmlNode) =
+            match node.Name with
+            | "ul" -> fun i -> "-"
+            | "ol" -> fun i -> $"{i+1}."
+            | _ -> failwith "Cannot get a list marker for nodes other than ul and ol."
+                   
+        let rec formatListRec(node: HtmlNode) (level : int) (index : int) (listMarkerProvider :  int -> string) : string =
+            
+            match node.Name with
+            | "li" -> 
+                let liText = formatLiNode node level (listMarkerProvider index)
+                let children = node.ChildNodes |> List.ofSeq |> List.filter isListNode
+                match children with
+                | [] -> liText  
+                | _ -> 
+                    let childrenText = children |> List.mapi (fun idx n  -> formatListRec n (level + 1) idx listMarkerProvider) |> String.concat $"{System.Environment.NewLine}"
+                    liText + System.Environment.NewLine + childrenText
+            | "ul" | "ol" ->
+                let children = node.ChildNodes |> List.ofSeq |> List.filter (fun i -> i.Name = "li") 
+                let lmProvider = getLmProvider node
+                children |> List.ofSeq |> List.mapi (fun idx li -> formatListRec li (level + 1) idx lmProvider) |> String.concat $"{System.Environment.NewLine}"
+            | _ -> ""
+        
+        formatListRec node 0 1 (getLmProvider(node))
 
-        let liText = liNodes |> List.mapi (fun idx li -> formatLiNode li level (listMarkerProvider idx))
-        let text = liText |> String.concat $"{System.Environment.NewLine}"
-        text
-    
+       
+  
+
+      
  
     let formatElementAsPlainText (node: HtmlNode) : string = 
         match node.Name.ToLower() with
         | "table" -> formatTableAsPlainText node
-        | "ol" | "ul" -> formatListNode node 0
-        | "p" -> node.InnerText + System.Environment.NewLine
-        | _ -> node.InnerText         
+        | "ol" | "ul" -> formatList node 
+        | "p" | "#text" -> node.InnerText + System.Environment.NewLine
+        | _ -> node.InnerText
  
     let parseNodeListToChunk (nodes : HtmlNode list) : Chunk =
         let heading = nodes.Head 

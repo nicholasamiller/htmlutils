@@ -45,6 +45,7 @@ module Domain =
     type DrupalContentDocument = {
         Metadata : DrupalPageMetadata
         Chunks: Chunk list;
-    }
+    } 
+        
 
 
