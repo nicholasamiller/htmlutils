@@ -29,9 +29,6 @@ module Chunking =
             | _ -> false
         chunk items isChunkStart
     
-   
-
-
 
     let formatTableAsPlainText (tableNode: HtmlNode) : string =
         let stringBuilder = StringBuilder()
@@ -98,7 +95,7 @@ module Chunking =
         | "table" -> formatTableAsPlainText node
         | "ol" | "ul" -> formatList node 
         | "p" | "#text" -> node.InnerText + System.Environment.NewLine
-        | _ -> node.InnerText
+        | _ -> node.InnerText.Trim()
  
     let parseNodeListToChunk (nodes : HtmlNode list) : Chunk =
         let heading = nodes.Head 

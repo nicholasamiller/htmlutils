@@ -37,7 +37,6 @@ module Scraping =
             | ex -> return Error(ScrapeError.Exception(ex))
         }
     
-    
     let readStreamAsHtml (stream : Stream) : Result<string,ScrapeError> = 
          use sr = new StreamReader(stream,true)
          try

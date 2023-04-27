@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DrupalScraper": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Users\\nick\\Documents\\GitHub\\scraper-box"
+    }
+  }
+}
